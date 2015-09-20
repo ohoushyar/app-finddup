@@ -11,11 +11,13 @@ use File::Spec::Functions;
 my $verbose;
 my $dir = '.';
 my @exc;
+my $exec;
 
 GetOptions(
     "v|verbose" => \$verbose,
     "dir=s" => \$dir,
     "exclude=s@" => \@exc,
+    "exec=s" => \$exec,
 );
 
 my %seen;
@@ -59,9 +61,20 @@ sub traverse {
             $seen{$digest} = [];
         } else {
             debug(sprintf("file [$filepath] is dup of [%s]", join(', ', @{ $seen{$digest} })));
+            if ($exec) {
+                my $tmpexec = $exec;
+                $tmpexec =~ s/{}/$filepath/g;
+                run($tmpexec);
+            }
         }
         push @{$seen{$digest}}, $filepath;
     }
+}
+
+sub run {
+    my $cmd = shift;
+    system($cmd) == 0 or die "Failted to run cmd [$cmd]";
+    debug("Ran cmd [$cmd]");
 }
 
 sub show_dup {
