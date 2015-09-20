@@ -7,6 +7,7 @@ use Digest::SHA;
 use Getopt::Long;
 use FindBin qw($Bin);
 use File::Spec::Functions;
+use Term::ANSIColor;
 
 my $verbose;
 my $dir = '.';
@@ -61,10 +62,12 @@ sub traverse {
         unless (exists $seen{$digest}) {
             $seen{$digest} = [];
         } else {
-            debug(sprintf("file [$filepath] is dup of [%s]", join(', ', @{ $seen{$digest} })));
+            info(sprintf("file [$filepath] is dup of [%s]", join(', ', @{ $seen{$digest} })));
             if ($exec) {
                 my $tmpexec = $exec;
-                $tmpexec =~ s/{}/$filepath/g;
+                my $bash_filepath = $filepath;
+                $bash_filepath =~ s/([\s\(\)])/\\$1/g;
+                $tmpexec =~ s/{}/$bash_filepath/g;
                 run($tmpexec);
             }
         }
@@ -75,13 +78,18 @@ sub traverse {
 sub run {
     my $cmd = shift;
     system($cmd) == 0 or die "Failted to run cmd [$cmd]";
-    debug("Ran cmd [$cmd]");
+    info("Ran cmd [$cmd]");
 }
 
 sub show_dup {
     for my $dig (keys %seen) {
         say "DUP => ".join(', ', @{$seen{$dig}}) if ref($seen{$dig}) eq 'ARRAY' and @{$seen{$dig}}>1;
     }
+}
+
+sub info {
+    my $msg = shift;
+    print STDERR colored(['green'], "[INFO] $msg\n");
 }
 
 sub debug {
