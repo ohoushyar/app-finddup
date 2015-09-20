@@ -49,8 +49,9 @@ sub traverse {
 
         if (-d $filepath) {
             debug("file [$filepath] is dir");
-            traverse($filepath);
-            next;
+            traverse($filepath) unless exists $seen{$filepath};
+            $seen{$filepath}=1;
+            next FILE;
         }
 
         my $sha1 = Digest::SHA->new(1)->addfile($filepath);
@@ -79,7 +80,7 @@ sub run {
 
 sub show_dup {
     for my $dig (keys %seen) {
-        say "DUP => ".join(', ', @{$seen{$dig}}) if @{$seen{$dig}}>1;
+        say "DUP => ".join(', ', @{$seen{$dig}}) if ref($seen{$dig}) eq 'ARRAY' and @{$seen{$dig}}>1;
     }
 }
 
