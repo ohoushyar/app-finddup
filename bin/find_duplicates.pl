@@ -7,16 +7,18 @@ use Digest::SHA;
 use Getopt::Long;
 use FindBin qw($Bin);
 use File::Spec::Functions;
-# use Term::ANSIColor;
+use Term::ANSIColor;
 
 $|=1;
 my $verbose;
+my $no_color;
 my $dir = '.';
 my @exc;
 my $exec;
 
 GetOptions(
     "v|verbose" => \$verbose,
+    "no-color" => \$no_color,
     "dir=s" => \$dir,
     "exclude=s@" => \@exc,
     "exec=s" => \$exec,
@@ -90,7 +92,9 @@ sub show_dup {
 
 sub info {
     my $msg = shift;
-    print "[INFO] $msg\n";
+    my $info = "[INFO] $msg\n";
+    $info = $no_color ? $info : colored(['green'], $info);
+    print $info;
 }
 
 sub debug {
