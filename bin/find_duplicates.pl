@@ -7,8 +7,9 @@ use Digest::SHA;
 use Getopt::Long;
 use FindBin qw($Bin);
 use File::Spec::Functions;
-use Term::ANSIColor;
+# use Term::ANSIColor;
 
+$|=1;
 my $verbose;
 my $dir = '.';
 my @exc;
@@ -38,18 +39,18 @@ sub traverse {
         or die "Unable to open dir [$dir]; ERROR [$!]";
     FILE:
     while (my $file = readdir($dh)) {
-        debug("file [$file]");
-        next FILE if ($file =~ /^\.\.?/ and -d $file);
-
         my $filepath = catfile($dir, $file);
         debug("Filepath [$filepath]");
+        next FILE if (($file =~ /^\.\.?/ && -d $filepath) || (-l $filepath));
+
         if (@exc and grep(/\Q$filepath\E/, @exc)) {
             debug("SKIPed exclude [$filepath]");
             next FILE;
         }
 
         if (-d $filepath) {
-            debug("file [$filepath] is dir");
+            print "\n";
+            info(" --> processing dir [$filepath]");
             traverse($filepath) unless exists $seen{$filepath};
             $seen{$filepath}=1;
             next FILE;
@@ -89,7 +90,7 @@ sub show_dup {
 
 sub info {
     my $msg = shift;
-    print STDERR colored(['green'], "[INFO] $msg\n");
+    print "[INFO] $msg\n";
 }
 
 sub debug {
