@@ -45,9 +45,11 @@ sub traverse {
         or die "Unable to open dir [$dir]; ERROR [$!]";
     FILE:
     while (my $file = readdir($dh)) {
+        next FILE if $file =~ /^\.\.?$/;
+
         my $filepath = catfile($dir, $file);
         debug("Filepath [$filepath]");
-        next FILE if (($file =~ /^\.\.?/ && -d $filepath) || (-l $filepath));
+        next FILE if -l $filepath;
 
         if (@exc and grep(/\Q$filepath\E/, @exc)) {
             debug("SKIPed exclude [$filepath]");
