@@ -12,30 +12,34 @@ use Term::ANSIColor;
 $|=1;
 my $verbose;
 my $no_color;
-my $dir = '.';
+my @dirs;
 my @exc;
 my $exec;
 
 GetOptions(
     "v|verbose" => \$verbose,
     "no-color" => \$no_color,
-    "dir=s" => \$dir,
+    "dir=s@" => \@dirs,
     "exclude=s@" => \@exc,
     "exec=s" => \$exec,
 );
 
 my %seen;
-debug("dir [$dir]");
+my $width = 50;
 
-traverse($dir);
+for my $dir (@dirs) {
+    traverse($dir);
+}
+
 show_dup();
 
+say '='x$width;
 say 'Done';
 exit(0);
 
 sub traverse {
     my $dir = shift;
-    debug("Looking for dup in dir [$dir]");
+    info(" --> processing dir [$dir]");
 
     opendir my $dh, $dir
         or die "Unable to open dir [$dir]; ERROR [$!]";
@@ -52,7 +56,6 @@ sub traverse {
 
         if (-d $filepath) {
             print "\n";
-            info(" --> processing dir [$filepath]");
             traverse($filepath) unless exists $seen{$filepath};
             $seen{$filepath}=1;
             next FILE;
@@ -65,7 +68,7 @@ sub traverse {
         unless (exists $seen{$digest}) {
             $seen{$digest} = [];
         } else {
-            info(sprintf("file [$filepath] is dup of [%s]", join(', ', @{ $seen{$digest} })));
+            info(sprintf("file [$filepath] is dup of:\n\t%s\n", join("\n\t", @{ $seen{$digest} })));
             if ($exec) {
                 my $tmpexec = $exec;
                 my $bash_filepath = $filepath;
@@ -85,8 +88,12 @@ sub run {
 }
 
 sub show_dup {
+    say '';
+    say '-'x$width;
+    say 'Result';
     for my $dig (keys %seen) {
-        say "DUP => ".join(', ', @{$seen{$dig}}) if ref($seen{$dig}) eq 'ARRAY' and @{$seen{$dig}}>1;
+        say join("\n", '-'x$width, join("\n", @{$seen{$dig}}))
+            if ref($seen{$dig}) eq 'ARRAY' and @{$seen{$dig}}>1;
     }
 }
 
