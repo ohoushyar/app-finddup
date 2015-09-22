@@ -21,7 +21,7 @@ GetOptions(
     "no-color" => \$no_color,
     "dir=s@" => \@dirs,
     "exclude=s@" => \@exc,
-    "exec=s" => \$exec,
+    "exec=s" => \$exec, # find style exec
 );
 
 my %seen;
