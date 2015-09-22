@@ -74,8 +74,8 @@ sub traverse {
             if ($exec) {
                 my $tmpexec = $exec;
                 my $bash_filepath = $filepath;
-                $bash_filepath =~ s/([\s\(\)])/\\$1/g;
-                $tmpexec =~ s/{}/$bash_filepath/g;
+                $bash_filepath =~ s/'/'\\''/g;
+                $tmpexec =~ s/{}/'$bash_filepath'/g;
                 run($tmpexec);
             }
         }
